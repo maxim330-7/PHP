@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = 'Пожалуйста, заполните все поля корректно';
         $messageType = 'error';
     } else {
-        $to = 'your-email@example.com'; // Замените на ваш реальный email
+        $to = 'max.shep444@gmail.com'; 
         $success = sendEmail($to, $filteredData['subject'], $filteredData['body']);
         
         if ($success) {
