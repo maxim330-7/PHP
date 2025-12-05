@@ -1,100 +1,97 @@
 <?php
 declare(strict_types=1);
 
-/**
- * Гостевая книга с сохранением данных в текстовый файл
- */
-
-const DATA_FILE = __DIR__ . '/db/guestbook.txt';
+const DB_FILE = __DIR__ . '/db/guestbook.txt';
+const DB_DIR = __DIR__ . '/db';
 
 /**
- * Фильтрует и очищает входные данные
- * 
- * @param string $value Значение для фильтрации
- * @return string Очищенное значение
- */
-function filterInput(string $value): string
-{
-    $value = trim($value);
-    $value = strip_tags($value);
-    return htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
-}
-
-/**
- * Сохраняет данные пользователя в файл
- * 
+ * Сохраняет запись в гостевой книге
  * @param string $fname Имя пользователя
  * @param string $lname Фамилия пользователя
- * @return bool true в случае успеха, false в случае ошибки
+ * @return void
  */
-function saveUserData(string $fname, string $lname): bool
-{
-    if (empty($fname) || empty($lname)) {
-        return false;
+function saveEntry(string $fname, string $lname): void {
+    $entry = htmlspecialchars($fname) . ' ' . htmlspecialchars($lname) . "\n";
+    
+    if (!file_exists(DB_DIR)) {
+        mkdir(DB_DIR, 0755, true);
     }
     
-    $data = $fname . ' ' . $lname . PHP_EOL;
-    
-    $result = file_put_contents(DATA_FILE, $data, FILE_APPEND | LOCK_EX);
-    return $result !== false;
+    file_put_contents(DB_FILE, $entry, FILE_APPEND);
 }
 
 /**
  * Получает все записи из гостевой книги
- * 
- * @return array Массив строк с записями пользователей
+ * @return array<int, string>
  */
-function getAllEntries(): array
-{
-    if (!file_exists(DATA_FILE)) {
+function getEntries(): array {
+    if (!file_exists(DB_FILE)) {
         return [];
     }
     
-    $entries = file(DATA_FILE, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    return $entries ?: [];
+    $content = file_get_contents(DB_FILE);
+    if ($content === false) {
+        return [];
+    }
+    
+    $lines = explode("\n", trim($content));
+    return array_filter($lines, fn($line) => !empty($line));
 }
 
-// Обработка формы
+/**
+ * Получает размер файла в байтах
+ * @return int
+ */
+function getFileSize(): int {
+    if (!file_exists(DB_FILE)) {
+        return 0;
+    }
+    
+    $size = filesize(DB_FILE);
+    return $size === false ? 0 : $size;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $fname = filterInput($_POST['fname'] ?? '');
-    $lname = filterInput($_POST['lname'] ?? '');
+    $fname = isset($_POST['fname']) ? (string)$_POST['fname'] : '';
+    $lname = isset($_POST['lname']) ? (string)$_POST['lname'] : '';
+    
+    $fname = trim(strip_tags($fname));
+    $lname = trim(strip_tags($lname));
     
     if (!empty($fname) && !empty($lname)) {
-        saveUserData($fname, $lname);
+        saveEntry($fname, $lname);
         header('Location: ' . $_SERVER['PHP_SELF']);
-        exit;
+        exit();
     }
 }
 
-$entries = getAllEntries();
-?>
-<!DOCTYPE html>
+$entries = getEntries();
+$fileSize = getFileSize();
+?><!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Работа с файлами</title>
+    <title>Гостевая книга</title>
 </head>
-
 <body>
     <h1>Заполните форму</h1>
-
-    <form method="post" action="<?= $_SERVER['PHP_SELF'] ?>">
-        Имя: <input type="text" name="fname" required><br>
-        Фамилия: <input type="text" name="lname" required><br>
+    
+    <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
+        Она: <input type="text" name="fname"><br>
+        Фамилия: <input type="text" name="lname"><br>
         <br>
         <input type="submit" value="Отправить!">
     </form>
-
-    <?php if (!empty($entries)): ?>
-    <h2>Записи в гостевой книге:</h2>
+    
+    <hr>
+    
     <?php foreach ($entries as $index => $entry): ?>
-    <p><?= ($index + 1) . '. ' . $entry ?></p>
+        <?php echo ($index + 1) . ' ' . htmlspecialchars($entry); ?><br>
     <?php endforeach; ?>
-    <p><strong>Размер файла:</strong> <?= file_exists(DATA_FILE) ? filesize(DATA_FILE) : 0 ?> байт</p>
-    <?php endif; ?>
+    
+    <hr>
+    Размер файла: <?php echo $fileSize; ?> байт
 </body>
-
 </html>
