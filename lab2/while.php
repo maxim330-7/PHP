@@ -15,7 +15,7 @@ function printStringVertically(string $var): void {
     }
 }
 
-$var = 'HELLO'; // Присваиваем строковое значение HELLO
+$var = 'ПРИВЕТ'; // Присваиваем строковое значение HELLO
 ?>
 
 <!DOCTYPE html>
@@ -31,19 +31,9 @@ $var = 'HELLO'; // Присваиваем строковое значение HE
 <body>
     <h1>Цикл while</h1>
     <?php
-	/*
-	ЗАДАНИЕ
-	- Создайте переменную $var и присвойте ей строковое значение HELLO
-	- Используя цикл while выведите значение переменной $var в столбик так,
-	  чтобы на выходе в браузере получилось:
-	H
-	E
-	L
-	L
-	O
-	*/
 	printStringVertically($var);
 	?>
 </body>
+
 
 </html>
