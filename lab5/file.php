@@ -79,7 +79,7 @@ $fileSize = getFileSize();
     <h1>Заполните форму</h1>
     
     <form method="post" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>">
-        Она: <input type="text" name="fname"><br>
+        Имя: <input type="text" name="fname"><br>
         Фамилия: <input type="text" name="lname"><br>
         <br>
         <input type="submit" value="Отправить!">
@@ -95,3 +95,4 @@ $fileSize = getFileSize();
     Размер файла: <?php echo $fileSize; ?> байт
 </body>
 </html>
+
